@@ -118,27 +118,19 @@ CREATE OR REPLACE FUNCTION keep_any_command() RETURNS event_trigger
     LANGUAGE plpgsql
     AS $$
     DECLARE
-        new_classid oid;
-        new_objid   oid;
-        new_objsubid    integer;
+        r record;
     BEGIN
-        SELECT classid, objid, objsubid
-        INTO new_classid, new_objid, new_objsubid
-        FROM pg_event_trigger_ddl_commands();
-
-        IF 
-            new_classid IS NOT NULL
-        THEN
+        FOR r IN SELECT * FROM pg_event_trigger_ddl_commands() LOOP
             IF EXISTS (
-            SELECT 1 from ddl_events WHERE classid = new_classid 
-                AND objid = new_objid 
-                AND objsubid = new_objsubid)
+            SELECT 1 from ddl_events WHERE classid = r.classid 
+                AND objid = r.objid 
+                AND objsubid = r.objsubid)
             THEN 
-                UPDATE ddl_events SET last_modified = current_timestamp WHERE classid = new_classid AND objid = new_objid AND objsubid = new_objsubid;
+                UPDATE ddl_events SET last_modified = current_timestamp WHERE classid = r.classid AND objid = r.objid AND objsubid = r.objsubid;
             ELSE
-                INSERT INTO ddl_events SELECT new_classid, new_objid, new_objsubid, current_timestamp;
+                INSERT INTO ddl_events SELECT r.classid, r.objid, r.objsubid, current_timestamp;
             END IF;
-        END IF;
+        END LOOP;
     END;
 $$;
 
