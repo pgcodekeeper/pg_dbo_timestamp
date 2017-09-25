@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		INSERT INTO ddl_events 
 		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
 		FROM pg_class c
-		WHERE c.relkind = 'r'
+		WHERE c.relkind IN ('f','r')
 			AND c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT c.oid = ANY (extension_deps);
@@ -73,7 +73,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		INSERT INTO ddl_events 
 		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
 		FROM pg_class c
-		WHERE c.relkind = 'v'
+		WHERE c.relkind IN ('v','m')
 			AND c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT c.oid = ANY (extension_deps);
