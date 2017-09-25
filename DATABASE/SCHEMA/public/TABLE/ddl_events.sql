@@ -10,4 +10,4 @@ CREATE TABLE ddl_events (
 --------------------------------------------------------------------------------
 
 ALTER TABLE ddl_events
-	ADD CONSTRAINT ddl_events_pkey PRIMARY KEY (classid, objid, objsubid);
+	ADD CONSTRAINT events_pkey PRIMARY KEY (classid, objid, objsubid);
