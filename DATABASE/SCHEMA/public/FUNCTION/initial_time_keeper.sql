@@ -48,7 +48,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		INSERT INTO ddl_events 
 		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
 		FROM pg_class c
-		WHERE c.relkind IN ('f','r')
+		WHERE c.relkind IN ('f','r','p')
 			AND c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT c.oid = ANY (extension_deps);
@@ -83,7 +83,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		SELECT 'pg_trigger'::regclass::oid, t.oid, 0, current_timestamp  
 		FROM pg_catalog.pg_class c
 		RIGHT JOIN pg_catalog.pg_trigger t ON c.oid = t.tgrelid
-		WHERE (c.relkind = 'r' OR c.relkind = 'v')
+		WHERE c.relkind IN ('r', 'f', 'p', 'm', 'v')
 			AND t.tgisinternal = FALSE			
 			AND c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
@@ -97,7 +97,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		WHERE 	c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT r.oid = ANY (extension_deps)
-			AND NOT ((c.relkind = 'v' OR c.relkind = 'm') 
+			AND NOT c.relkind IN ('v', 'm') 
 			AND r.ev_type = '1' 
 			AND r.is_instead);
 
@@ -112,4 +112,3 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		
 	END;
 	$$;
-
