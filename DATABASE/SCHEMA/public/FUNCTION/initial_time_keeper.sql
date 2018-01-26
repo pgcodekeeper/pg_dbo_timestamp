@@ -99,7 +99,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 			AND NOT r.oid = ANY (extension_deps)
 			AND NOT c.relkind IN ('v', 'm') 
 			AND r.ev_type = '1' 
-			AND r.is_instead);
+			AND r.is_instead;
 
 		--all sequence
 		INSERT INTO ddl_events 
