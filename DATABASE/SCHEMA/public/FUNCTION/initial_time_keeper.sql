@@ -97,9 +97,7 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		WHERE 	c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT r.oid = ANY (extension_deps)
-			AND NOT c.relkind IN ('v', 'm') 
-			AND r.ev_type = '1' 
-			AND r.is_instead;
+			AND NOT (c.relkind IN ('v', 'm') AND r.ev_type = '1' AND r.is_instead);
 
 		--all sequence
 		INSERT INTO ddl_events 
