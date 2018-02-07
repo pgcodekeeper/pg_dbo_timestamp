@@ -2,10 +2,11 @@ SET search_path = public, pg_catalog;
 
 CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
     LANGUAGE plpgsql
+    SET search_path = @extschema@, pg_catalog
     AS $$
 	DECLARE
-		pg_cat_schema	oid;
-		inf_schema	oid;
+		pg_cat_schema  oid;
+		inf_schema	   oid;
 		extension_deps oid[];
 	BEGIN
 		SELECT n.oid INTO pg_cat_schema FROM pg_namespace n WHERE n.nspname = 'pg_catalog';
@@ -17,18 +18,18 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		DELETE FROM ddl_events;
 
 		--all schemas
-		INSERT INTO ddl_events SELECT 'pg_namespace'::regclass::oid, n.oid, 0, current_timestamp 
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_namespace'::regclass::oid, n.oid, null
 		FROM pg_namespace n 
 		WHERE n.nspname NOT LIKE 'pg\_%' 
 			AND n.nspname != 'information_schema'
 			AND NOT EXISTS (SELECT 1 FROM pg_catalog.pg_depend dp WHERE dp.objid = n.oid AND dp.deptype = 'e');
 
 		--all extensions
-		INSERT INTO ddl_events SELECT 'pg_extension'::regclass::oid, e.oid, 0, current_timestamp 
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_extension'::regclass::oid, e.oid, null
 		FROM pg_extension e;
 
 		-- all types
-		INSERT INTO ddl_events SELECT 'pg_type'::regclass::oid, t.oid, 0, current_timestamp 
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_type'::regclass::oid, t.oid, null
 		FROM pg_type t 
 		WHERE t.typisdefined = TRUE 
 		    AND (t.typrelid = 0 OR (SELECT c.relkind FROM pg_catalog.pg_class c WHERE c.oid = t.typrelid) = 'c')
@@ -38,24 +39,22 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 		    AND NOT t.oid = ANY (extension_deps);
 
 		--all functions
-		INSERT INTO ddl_events SELECT 'pg_proc'::regclass::oid, p.oid, 0, current_timestamp  
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_proc'::regclass::oid, p.oid, null
 		FROM pg_proc p 
 		WHERE p.pronamespace != pg_cat_schema 
 			AND p.pronamespace != inf_schema
 			AND NOT p.oid = ANY (extension_deps);
 
-		--all tables
-		INSERT INTO ddl_events 
-		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
+		--all relations
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_class'::regclass::oid, c.oid, null
 		FROM pg_class c
-		WHERE c.relkind IN ('f','r','p')
+		WHERE c.relkind IN ('f','r','p','v','m','S')
 			AND c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT c.oid = ANY (extension_deps);
 
-		--all indeces
-		INSERT INTO ddl_events 
-		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
+		--all indices
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_class'::regclass::oid, c.oid, null
 		FROM pg_catalog.pg_index ind
 		JOIN pg_catalog.pg_class c ON c.oid = ind.indexrelid
 		LEFT JOIN pg_catalog.pg_constraint cons ON cons.conindid = ind.indexrelid
@@ -66,21 +65,10 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 			AND NOT c.oid = ANY (extension_deps)
 			AND ind.indisprimary = FALSE
 			AND ind.indisexclusion = FALSE
-			AND cons.conindid is NULL;
-
-		
-		--all views
-		INSERT INTO ddl_events 
-		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp  
-		FROM pg_class c
-		WHERE c.relkind IN ('v','m')
-			AND c.relnamespace != pg_cat_schema 
-			AND c.relnamespace != inf_schema
-			AND NOT c.oid = ANY (extension_deps);
+			AND cons.conindid is NULL;	
 
 		--all triggers
-		INSERT INTO ddl_events 
-		SELECT 'pg_trigger'::regclass::oid, t.oid, 0, current_timestamp  
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_trigger'::regclass::oid, t.oid, null
 		FROM pg_catalog.pg_class c
 		RIGHT JOIN pg_catalog.pg_trigger t ON c.oid = t.tgrelid
 		WHERE c.relkind IN ('r', 'f', 'p', 'm', 'v')
@@ -90,23 +78,13 @@ CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
 			AND NOT t.oid = ANY (extension_deps);
 
 		--all rules
-		INSERT INTO ddl_events 
-		SELECT 'pg_rewrite'::regclass::oid, r.oid, 0, current_timestamp 
+		INSERT INTO ddl_events (classid, objid, author) SELECT 'pg_rewrite'::regclass::oid, r.oid, null
 		FROM pg_catalog.pg_rewrite r
 		JOIN pg_catalog.pg_class c ON c.oid = r.ev_class 
 		WHERE 	c.relnamespace != pg_cat_schema 
 			AND c.relnamespace != inf_schema
 			AND NOT r.oid = ANY (extension_deps)
 			AND NOT (c.relkind IN ('v', 'm') AND r.ev_type = '1' AND r.is_instead);
-
-		--all sequence
-		INSERT INTO ddl_events 
-		SELECT 'pg_class'::regclass::oid, c.oid, 0, current_timestamp 
-			FROM pg_catalog.pg_class c
-			WHERE c.relnamespace != pg_cat_schema 
-			AND c.relnamespace != inf_schema
-			AND NOT c.oid = ANY (extension_deps)
-			AND c.relkind = 'S';
 		
 	END;
 	$$;

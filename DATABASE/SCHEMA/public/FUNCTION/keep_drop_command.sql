@@ -2,6 +2,7 @@ SET search_path = public, pg_catalog;
 
 CREATE OR REPLACE FUNCTION keep_drop_command() RETURNS event_trigger
     LANGUAGE plpgsql
+    SET search_path = @extschema@, pg_catalog
     AS $$
     DECLARE
         r record;
@@ -11,8 +12,7 @@ CREATE OR REPLACE FUNCTION keep_drop_command() RETURNS event_trigger
             THEN
                 DELETE FROM ddl_events 
                 WHERE classid = r.classid 
-                    AND objid = r.objid 
-                    AND objsubid = r.objsubid;
+                    AND objid = r.objid;
             END IF; 
         END LOOP;
     END;

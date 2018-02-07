@@ -7,6 +7,7 @@ CREATE VIEW show_objects AS
             f.schema,
             f.name,
             f.identity,
-            t.last_modified
+            t.last_modified,
+            t.author
    FROM ddl_events t,
-            LATERAL pg_identify_object(t.classid, t.objid, t.objsubid) f(type, schema, name, identity);
+            LATERAL pg_identify_object(t.classid, t.objid, 0) f(type, schema, name, identity);
