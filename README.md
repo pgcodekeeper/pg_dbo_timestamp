@@ -25,7 +25,7 @@ Full installation code:
 
 ```sql
 CREATE EXTENSION pg_dbo_timestamp [SCHEMA schema_name];
-ALTER EVENT TRIGGER keep_any_command ENABLE;
+ALTER EVENT TRIGGER keep_ddl_timestamps ENABLE;
 ```
 
 Update extension
