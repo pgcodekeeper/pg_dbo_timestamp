@@ -32,7 +32,7 @@ Usage privileges
 
 Users of the extension (i.e. pgCodeKeeper users) must have sufficient privileges to read from `dbots_object_timestamps` view.
 
-Database users executing DDL statements must have sufficient privileges to read from and write to `dbots_event_data` table.
+Database users executing DDL statements must have sufficient privileges to read from and write to `dbots_event_data` table. Otherwise no DDL events will be recorded and object timestamps will become stale, potentially breaking client functionality.
 
 These objects reside in the extension's installation schema, so sufficent privileges to access that schema are also required.
 
