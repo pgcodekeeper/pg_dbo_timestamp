@@ -8,15 +8,14 @@ Dependencies
 
  * PostgreSQL 9.3+
 
-PostgreSQL Install
+PostgreSQL install
 -------
 
 ```sh
 sudo make install
 ```
 
-
-Database Install
+Database install
 ---------------
 
 PostgreSQL has a [bug](https://www.postgresql.org/message-id/20170913075559.25630.41587@wrigleys.postgresql.org) that does not allow event trigger activation in extensions. In this regard, when we create the extension, we disable it. For correct operation of the extension after its installation, you must manually enable the event trigger. 
@@ -28,7 +27,16 @@ CREATE EXTENSION pg_dbo_timestamp [SCHEMA schema_name];
 ALTER EVENT TRIGGER dbots_tg_on_ddl_event ENABLE;
 ```
 
-Update extension
+Usage privileges
+---------------
+
+Users of the extension (i.e. pgCodeKeeper users) must have sufficient privileges to read from `dbots_object_timestamps` view.
+
+Database users executing DDL statements must have sufficient privileges to read from and write to `dbots_event_data` table.
+
+These objects reside in the extension's installation schema, so sufficent privileges to access that schema are also required.
+
+Updating extension
 ----------------
 
 Updating the version of extension installed in a database
