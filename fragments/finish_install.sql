@@ -1,9 +1,10 @@
-CREATE EVENT TRIGGER keep_drop_ddl_timestamps ON sql_drop
-   EXECUTE PROCEDURE keep_drop_command();
+CREATE EVENT TRIGGER dbots_tg_on_drop_event ON sql_drop
+   EXECUTE PROCEDURE dbots_on_drop_event();
 
-CREATE EVENT TRIGGER keep_ddl_timestamps ON ddl_command_end
-   EXECUTE PROCEDURE keep_any_command();
+CREATE EVENT TRIGGER dbots_tg_on_ddl_event ON ddl_command_end
+   EXECUTE PROCEDURE dbots_on_ddl_event();
 
-SELECT initial_time_keeper();
+SELECT dbots_init_timestamps();
 
-ALTER EVENT TRIGGER keep_ddl_timestamps DISABLE;
+ALTER EVENT TRIGGER dbots_tg_on_ddl_event DISABLE;
+

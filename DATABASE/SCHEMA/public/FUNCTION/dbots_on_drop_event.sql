@@ -1,6 +1,6 @@
 SET search_path = public, pg_catalog;
 
-CREATE OR REPLACE FUNCTION keep_drop_command() RETURNS event_trigger
+CREATE OR REPLACE FUNCTION dbots_on_drop_event() RETURNS event_trigger
     LANGUAGE plpgsql
     SET search_path = public, pg_catalog
     AS $$
@@ -13,7 +13,7 @@ CREATE OR REPLACE FUNCTION keep_drop_command() RETURNS event_trigger
         FOR r IN SELECT * FROM pg_event_trigger_dropped_objects() LOOP 
             IF NOT r.is_temporary 
             THEN
-                DELETE FROM ddl_events 
+                DELETE FROM dbots_event_data 
                 WHERE classid = r.classid 
                     AND objid = r.objid;
             END IF; 

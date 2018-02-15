@@ -1,6 +1,6 @@
 SET search_path = public, pg_catalog;
 
-CREATE OR REPLACE FUNCTION keep_any_command() RETURNS event_trigger
+CREATE OR REPLACE FUNCTION dbots_on_ddl_event() RETURNS event_trigger
     LANGUAGE plpgsql
     SET search_path = public, pg_catalog
     AS $$
@@ -14,12 +14,12 @@ CREATE OR REPLACE FUNCTION keep_any_command() RETURNS event_trigger
             IF r.classid IS NOT NUll AND r.objid IS NOT NULL 
             THEN
                 IF EXISTS (
-                SELECT 1 from ddl_events WHERE classid = r.classid AND objid = r.objid)
+                SELECT 1 from dbots_event_data WHERE classid = r.classid AND objid = r.objid)
                 THEN 
-                    UPDATE ddl_events SET last_modified = DEFAULT, author = DEFAULT 
+                    UPDATE dbots_event_data SET last_modified = DEFAULT, author = DEFAULT 
                     WHERE classid = r.classid AND objid = r.objid;
                 ELSE
-                    INSERT INTO ddl_events (classid, objid) SELECT r.classid, r.objid;
+                    INSERT INTO dbots_event_data (classid, objid) SELECT r.classid, r.objid;
                 END IF;
             ELSE 
                 RAISE NOTICE 'DDL unsupported by pg_dbo_timestamp';
