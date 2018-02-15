@@ -13,7 +13,8 @@ CREATE OR REPLACE FUNCTION keep_any_command() RETURNS event_trigger
                 IF EXISTS (
                 SELECT 1 from ddl_events WHERE classid = r.classid AND objid = r.objid)
                 THEN 
-                    UPDATE ddl_events SET last_modified = DEFAULT WHERE classid = r.classid AND objid = r.objid;
+                    UPDATE ddl_events SET last_modified = DEFAULT, author = DEFAULT 
+                    WHERE classid = r.classid AND objid = r.objid;
                 ELSE
                     INSERT INTO ddl_events (classid, objid) SELECT r.classid, r.objid;
                 END IF;
