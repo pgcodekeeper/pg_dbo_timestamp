@@ -2,7 +2,7 @@ SET search_path = public, pg_catalog;
 
 CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
     LANGUAGE plpgsql
-    SET search_path = @extschema@, pg_catalog
+    SET search_path = public, pg_catalog
     AS $$
 	DECLARE
 		pg_cat_schema  oid;

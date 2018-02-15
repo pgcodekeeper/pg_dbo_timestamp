@@ -1,4 +1,5 @@
 \echo Use "CREATE EXTENSION pg_dbo_timestamp" to load this file. \quit
+SET search_path = @extschema@, pg_catalog;
 
 CREATE OR REPLACE FUNCTION initial_time_keeper() RETURNS void
     LANGUAGE plpgsql

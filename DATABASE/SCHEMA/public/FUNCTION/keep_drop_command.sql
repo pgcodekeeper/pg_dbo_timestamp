@@ -2,7 +2,7 @@ SET search_path = public, pg_catalog;
 
 CREATE OR REPLACE FUNCTION keep_drop_command() RETURNS event_trigger
     LANGUAGE plpgsql
-    SET search_path = @extschema@, pg_catalog
+    SET search_path = public, pg_catalog
     AS $$
     DECLARE
         r record;
