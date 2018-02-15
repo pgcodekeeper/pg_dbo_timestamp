@@ -1,0 +1,5 @@
+*/.settings/ru.taximaxim.codekeeper.ui.prefs
+generated/
+DATABASE/.project
+DATABASE/MIGRATION/
+.project
