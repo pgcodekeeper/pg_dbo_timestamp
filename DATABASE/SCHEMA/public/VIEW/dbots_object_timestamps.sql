@@ -1,7 +1,7 @@
 SET search_path = public, pg_catalog;
 
 CREATE VIEW dbots_object_timestamps AS
-    SELECT 
+	SELECT 
             t.objid,
             f.type,
             f.schema,
