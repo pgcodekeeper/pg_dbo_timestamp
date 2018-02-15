@@ -8,7 +8,7 @@ Dependencies
 
  * PostgreSQL 9.3+
 
-Install
+PostgreSQL Install
 -------
 
 ```sh
@@ -16,10 +16,10 @@ sudo make install
 ```
 
 
-Enable database
+Database Install
 ---------------
 
-Postgres has a [bug](https://www.postgresql.org/message-id/20170913075559.25630.41587@wrigleys.postgresql.org) that does not allow the use of event trigger in extension. In this regard, when we create the extension, we disable it. For the correct operation of the extension after its installation, you must manually enable the event trigger. 
+PostgreSQL has a [bug](https://www.postgresql.org/message-id/20170913075559.25630.41587@wrigleys.postgresql.org) that does not allow event trigger activation in extensions. In this regard, when we create the extension, we disable it. For correct operation of the extension after its installation, you must manually enable the event trigger. 
 
 Full installation code:
 
