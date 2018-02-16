@@ -3,7 +3,7 @@
 
 CREATE OR REPLACE FUNCTION dbots_init_timestamps() RETURNS void
     LANGUAGE plpgsql
-    SET search_path TO public, pg_catalog
+    SET search_path TO @extschema@, pg_catalog
     AS $$
 DECLARE
 	pg_cat_schema  oid;
@@ -92,7 +92,7 @@ END;
 
 CREATE OR REPLACE FUNCTION dbots_on_ddl_event() RETURNS event_trigger
     LANGUAGE plpgsql
-    SET search_path TO public, pg_catalog
+    SET search_path TO @extschema@, pg_catalog
     AS $$
 DECLARE
     r record;
@@ -127,7 +127,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION dbots_on_drop_event() RETURNS event_trigger
     LANGUAGE plpgsql
-    SET search_path TO public, pg_catalog
+    SET search_path TO @extschema@, pg_catalog
     AS $$
 DECLARE
     r record;
