@@ -34,7 +34,13 @@ Users of the extension (i.e. pgCodeKeeper users) must have sufficient privileges
 
 Database users executing DDL statements must have sufficient privileges to read from and write to `dbots_event_data` table. Otherwise no DDL events will be recorded and object timestamps will become stale, potentially breaking client functionality.
 
-These objects reside in the extension's installation schema, so sufficent privileges to access that schema are also required.
+These objects reside in the extension's installation schema, so sufficient privileges to access that schema are also required.
+
+Known issues
+----------------
+
+The object timestamp tracking functionality is not fully reliable at the moment.  
+PostgreSQL does not provide full event trigger data for GRANT change events thus we don't track object privileges changes.
 
 Updating extension
 ----------------
