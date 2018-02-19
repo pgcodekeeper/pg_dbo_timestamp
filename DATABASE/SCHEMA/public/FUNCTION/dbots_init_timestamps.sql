@@ -48,7 +48,7 @@ BEGIN
 	--all relations
 	INSERT INTO dbots_event_data (classid, objid, author) SELECT 'pg_class'::regclass::oid, c.oid, null
 	FROM pg_class c
-	WHERE c.relkind IN ('f','r','p','v','m','S')
+	WHERE c.relkind NOT IN ('i','t')
 		AND c.relnamespace != pg_cat_schema 
 		AND c.relnamespace != inf_schema
 		AND NOT c.oid = ANY (extension_deps);

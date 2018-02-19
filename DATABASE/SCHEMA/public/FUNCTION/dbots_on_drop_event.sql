@@ -10,13 +10,16 @@ DECLARE
     _exmsg text;
     _exctx text;
 BEGIN
-    FOR r IN SELECT * FROM pg_event_trigger_dropped_objects() LOOP 
-        IF NOT r.is_temporary 
+    FOR r IN SELECT * FROM pg_event_trigger_dropped_objects() f WHERE NOT f.is_temporary LOOP
+        -- skip objsubid drops, write column drops as table updates 
+        IF r.objsubid = 0
         THEN
             DELETE FROM dbots_event_data 
-            WHERE classid = r.classid 
-                AND objid = r.objid;
-        END IF; 
+            WHERE classid = r.classid AND objid = r.objid;
+        ELSE
+            UPDATE dbots_event_data SET last_modified = DEFAULT, author = DEFAULT 
+            WHERE classid = r.classid AND objid = r.objid;
+        END IF;
     END LOOP;
 EXCEPTION WHEN OTHERS THEN
     GET STACKED DIAGNOSTICS 
