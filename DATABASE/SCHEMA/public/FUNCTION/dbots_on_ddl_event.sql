@@ -16,7 +16,8 @@ BEGIN
             IF EXISTS (
             SELECT 1 from dbots_event_data WHERE classid = r.classid AND objid = r.objid)
             THEN 
-                UPDATE dbots_event_data SET last_modified = DEFAULT, author = DEFAULT 
+                UPDATE dbots_event_data SET last_modified = DEFAULT, cur_user = DEFAULT,
+                ses_user = DEFAULT, ip_address = DEFAULT
                 WHERE classid = r.classid AND objid = r.objid;
             ELSE
                 INSERT INTO dbots_event_data (classid, objid) SELECT r.classid, r.objid;

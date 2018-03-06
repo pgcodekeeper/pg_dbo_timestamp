@@ -42,8 +42,6 @@ Known issues
 The object timestamp tracking functionality is not fully reliable at the moment.  
 PostgreSQL does not provide full event trigger data for GRANT change events thus we don't track object privileges changes.
 
-PostgreSQL 10's AS IDENTITY columns break this extension due to unsupported SEQUENCE states. Fix TBA.
-
 Updating extension
 ----------------
 

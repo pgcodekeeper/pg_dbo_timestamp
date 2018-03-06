@@ -8,6 +8,8 @@ CREATE VIEW dbots_object_timestamps AS
             f.name,
             f.identity,
             t.last_modified,
-            t.author
-   FROM dbots_event_data t,
-            LATERAL pg_identify_object(t.classid, t.objid, 0) f(type, schema, name, identity);
+            t.ses_user,
+            t.cur_user, 
+            t.ip_address
+    FROM dbots_event_data t,
+            LATERAL dbots_get_object_identity(t.classid, t.objid) f(type, schema, name, identity);
