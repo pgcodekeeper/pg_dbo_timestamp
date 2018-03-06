@@ -17,14 +17,8 @@ sudo make install
 
 Database install
 ---------------
-
-PostgreSQL has a [bug](https://www.postgresql.org/message-id/20170913075559.25630.41587@wrigleys.postgresql.org) that does not allow event trigger activation in extensions. In this regard, when we create the extension, we disable it. For correct operation of the extension after its installation, you must manually enable the event trigger. 
-
-Full installation code:
-
 ```sql
 CREATE EXTENSION pg_dbo_timestamp [SCHEMA schema_name];
-ALTER EVENT TRIGGER dbots_tg_on_ddl_event ENABLE;
 ```
 
 Usage privileges
