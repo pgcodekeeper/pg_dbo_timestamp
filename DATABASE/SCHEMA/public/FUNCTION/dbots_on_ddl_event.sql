@@ -10,7 +10,7 @@ DECLARE
     _exmsg text;
     _exctx text;
 BEGIN
-    FOR r IN SELECT * FROM pg_event_trigger_ddl_commands() LOOP
+    FOR r IN SELECT * FROM pg_catalog.pg_event_trigger_ddl_commands() LOOP
         IF r.classid IS NOT NUll AND r.objid IS NOT NULL 
         THEN
             IF EXISTS (
