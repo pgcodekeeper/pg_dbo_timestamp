@@ -43,7 +43,7 @@ BEGIN
 
 	--all functions
 	INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address) 
-	SELECT 'pg_catalog.pg_proc'::regclass::oid, p.oid, null, null, null
+	SELECT 'pg_catalog.pg_proc'::pg_catalog.regclass::oid, p.oid, null, null, null
 	FROM pg_catalog.pg_proc p 
 	WHERE p.pronamespace != pg_cat_schema 
 		AND p.pronamespace != inf_schema
