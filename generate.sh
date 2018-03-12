@@ -7,8 +7,8 @@ exit 1
 fi
 DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 NEW_VERSION="$1"
-LAST_VERSION=`git --git-dir $DIR/.git describe --tags --abbrev=0 master`
-WORK_DIR=`mktemp -d`
+LAST_VERSION="$(git --git-dir $DIR/.git describe --tags --abbrev=0 master)"
+WORK_DIR="$(mktemp -d)"
 SCRIPT_PATH="$DIR/scripts/pg_dbo_timestamp--${LAST_VERSION:1}--$NEW_VERSION.sql"
 
 # check temp dir creating
