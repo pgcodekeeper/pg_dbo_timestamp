@@ -9,6 +9,6 @@ BEGIN
     SELECT t.type, t.schema, t.name, t.identity 
     FROM pg_catalog.pg_identify_object(classid, objid, subid) t;
 EXCEPTION WHEN OTHERS THEN
-    RAISE WARNING 'pg_dbo_timestamp: Object with classid: % and objid: % not found', classid, objid;
+    RAISE WARNING 'pg_dbo_timestamp: Object with classid: %, objid: %, subid: % not found', classid, objid, subid;
 END;
 $$;
