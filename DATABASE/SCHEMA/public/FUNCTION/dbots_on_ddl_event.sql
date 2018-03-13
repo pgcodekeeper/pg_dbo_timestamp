@@ -10,13 +10,14 @@ DECLARE
     _exmsg text;
     _exctx text;
 BEGIN
-    FOR r IN SELECT * FROM pg_event_trigger_ddl_commands() LOOP
+    FOR r IN SELECT * FROM pg_catalog.pg_event_trigger_ddl_commands() LOOP
         IF r.classid IS NOT NUll AND r.objid IS NOT NULL 
         THEN
             IF EXISTS (
             SELECT 1 from dbots_event_data WHERE classid = r.classid AND objid = r.objid)
             THEN 
-                UPDATE dbots_event_data SET last_modified = DEFAULT, author = DEFAULT 
+                UPDATE dbots_event_data SET last_modified = DEFAULT, cur_user = DEFAULT,
+                ses_user = DEFAULT, ip_address = DEFAULT
                 WHERE classid = r.classid AND objid = r.objid;
             ELSE
                 INSERT INTO dbots_event_data (classid, objid) SELECT r.classid, r.objid;
