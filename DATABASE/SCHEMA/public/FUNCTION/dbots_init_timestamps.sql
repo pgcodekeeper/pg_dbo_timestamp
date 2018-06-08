@@ -94,5 +94,45 @@ BEGIN
 		AND NOT r.oid = ANY (extension_deps)
 		AND NOT (c.relkind IN ('v', 'm') AND r.ev_type = '1' AND r.is_instead);
 		
+    --all fts parsers
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_parser'::pg_catalog.regclass::oid, p.oid, null, null, null
+    FROM pg_catalog.pg_ts_parser p
+    WHERE p.prsnamespace != pg_cat_schema
+        AND p.prsnamespace != inf_schema
+        AND NOT t.oid = ANY (extension_deps);
+        
+    --all fts templates
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_template'::pg_catalog.regclass::oid, t.oid, null, null, null
+    FROM pg_catalog.pg_ts_template t
+    WHERE t.tmplnamespace != pg_cat_schema
+        AND t.tmplnamespace != inf_schema
+        AND NOT t.oid = ANY (extension_deps);
+        
+    --all fts dictionaries
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_dict'::pg_catalog.regclass::oid, d.oid, null, null, null
+    FROM pg_catalog.pg_ts_dict d
+    WHERE d.dictnamespace != pg_cat_schema
+        AND d.dictnamespace != inf_schema
+        AND NOT d.oid = ANY (extension_deps);
+        
+    --all fts configurations
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_config'::pg_catalog.regclass::oid, c.oid, null, null, null
+    FROM pg_catalog.pg_ts_config c
+    WHERE c.cfgnamespace != pg_cat_schema
+        AND c.cfgnamespace != inf_schema
+        AND NOT c.oid = ANY (extension_deps);
+      
+    --all collations
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_collation'::pg_catalog.regclass::oid, c.oid, null, null, null
+    FROM pg_catalog.pg_collation c
+    WHERE c.collnamespace != pg_cat_schema
+        AND c.collnamespace != inf_schema
+        AND NOT c.oid = ANY (extension_deps);
+
 END;
 	$$;
