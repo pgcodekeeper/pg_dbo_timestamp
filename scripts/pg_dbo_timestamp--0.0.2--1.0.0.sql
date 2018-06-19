@@ -1,4 +1,4 @@
-\echo Use "ALTER EXTENSION pg_dbo_timestamp UPDATE TO '1.0'" to load this file. \quit
+\echo Use "ALTER EXTENSION pg_dbo_timestamp UPDATE TO '1.0.0'" to load this file. \quit
 SET check_function_bodies = false;
 
 
