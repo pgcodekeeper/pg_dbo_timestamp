@@ -1,27 +1,7 @@
-\echo Use "ALTER EXTENSION pg_dbo_timestamp UPDATE TO '0.0.2'" to load this file. \quit
+\echo Use "ALTER EXTENSION pg_dbo_timestamp UPDATE TO '1.0'" to load this file. \quit
 SET check_function_bodies = false;
 
 
-
--- DEPCY: This VIEW depends on the COLUMN: dbots_event_data.author
-
-DROP VIEW dbots_object_timestamps;
-
-ALTER TABLE dbots_event_data
-	DROP COLUMN author;
-
-CREATE OR REPLACE FUNCTION dbots_get_object_identity(classid oid, objid oid, subid integer = 0) RETURNS TABLE(type text, schema text, name text, identity text)
-    LANGUAGE plpgsql
-    SET search_path TO @extschema@, pg_catalog
-    AS $$
-BEGIN
-    RETURN QUERY 
-    SELECT t.type, t.schema, t.name, t.identity 
-    FROM pg_catalog.pg_identify_object(classid, objid, subid) t;
-EXCEPTION WHEN OTHERS THEN
-    RAISE WARNING 'pg_dbo_timestamp: Object with classid: %, objid: %, subid: % not found', classid, objid, subid;
-END;
-$$;
 
 CREATE OR REPLACE FUNCTION dbots_init_timestamps() RETURNS void
     LANGUAGE plpgsql
@@ -117,111 +97,106 @@ BEGIN
 		AND NOT r.oid = ANY (extension_deps)
 		AND NOT (c.relkind IN ('v', 'm') AND r.ev_type = '1' AND r.is_instead);
 		
+    --all fts parsers
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_parser'::pg_catalog.regclass::oid, p.oid, null, null, null
+    FROM pg_catalog.pg_ts_parser p
+    WHERE p.prsnamespace != pg_cat_schema
+        AND p.prsnamespace != inf_schema
+        AND NOT p.oid = ANY (extension_deps);
+        
+    --all fts templates
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_template'::pg_catalog.regclass::oid, t.oid, null, null, null
+    FROM pg_catalog.pg_ts_template t
+    WHERE t.tmplnamespace != pg_cat_schema
+        AND t.tmplnamespace != inf_schema
+        AND NOT t.oid = ANY (extension_deps);
+        
+    --all fts dictionaries
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_dict'::pg_catalog.regclass::oid, d.oid, null, null, null
+    FROM pg_catalog.pg_ts_dict d
+    WHERE d.dictnamespace != pg_cat_schema
+        AND d.dictnamespace != inf_schema
+        AND NOT d.oid = ANY (extension_deps);
+        
+    --all fts configurations
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_ts_config'::pg_catalog.regclass::oid, c.oid, null, null, null
+    FROM pg_catalog.pg_ts_config c
+    WHERE c.cfgnamespace != pg_cat_schema
+        AND c.cfgnamespace != inf_schema
+        AND NOT c.oid = ANY (extension_deps);
+      
+    --all collations
+    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
+    SELECT 'pg_catalog.pg_collation'::pg_catalog.regclass::oid, c.oid, null, null, null
+    FROM pg_catalog.pg_collation c
+    WHERE c.collnamespace != pg_cat_schema
+        AND c.collnamespace != inf_schema
+        AND NOT c.oid = ANY (extension_deps);
+
 END;
 	$$;
 
-CREATE OR REPLACE FUNCTION dbots_on_ddl_event() RETURNS event_trigger
-    LANGUAGE plpgsql
-    SET search_path TO @extschema@, pg_catalog
-    AS $$
-DECLARE
-    r record;
-    _exstate text;
-    _exmsg text;
-    _exctx text;
-BEGIN
-    FOR r IN SELECT * FROM pg_catalog.pg_event_trigger_ddl_commands() LOOP
-        IF r.classid IS NOT NUll AND r.objid IS NOT NULL 
-        THEN
-            IF EXISTS (
-            SELECT 1 from dbots_event_data WHERE classid = r.classid AND objid = r.objid)
-            THEN 
-                UPDATE dbots_event_data SET last_modified = DEFAULT, cur_user = DEFAULT,
-                ses_user = DEFAULT, ip_address = DEFAULT
-                WHERE classid = r.classid AND objid = r.objid;
-            ELSE
-                INSERT INTO dbots_event_data (classid, objid) SELECT r.classid, r.objid;
-            END IF;
-        ELSE 
-            RAISE NOTICE 'DDL unsupported by pg_dbo_timestamp';
-        END IF;
-    END LOOP;
-EXCEPTION WHEN OTHERS THEN
-    GET STACKED DIAGNOSTICS 
-        _exstate = RETURNED_SQLSTATE,
-        _exmsg = MESSAGE_TEXT,
-        _exctx = PG_EXCEPTION_CONTEXT;
-    RAISE WARNING 'Error in pg_dbo_timestamp event trigger function. state: %, message: %, context: %', 
-        _exstate, _exmsg, _exctx;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION dbots_on_drop_event() RETURNS event_trigger
-    LANGUAGE plpgsql
-    SET search_path TO @extschema@, pg_catalog
-    AS $$
-DECLARE
-    r record;
-    _exstate text;
-    _exmsg text;
-    _exctx text;
-BEGIN
-    FOR r IN SELECT * FROM pg_catalog.pg_event_trigger_dropped_objects() f WHERE NOT f.is_temporary LOOP
-        -- skip objsubid drops, write column drops as table updates 
-        IF r.objsubid = 0
-        THEN
-            DELETE FROM dbots_event_data 
-            WHERE classid = r.classid AND objid = r.objid;
-        ELSE
-            UPDATE dbots_event_data SET last_modified = DEFAULT, cur_user = DEFAULT,
-                ses_user = DEFAULT, ip_address = DEFAULT
-            WHERE classid = r.classid AND objid = r.objid;
-        END IF;
-    END LOOP;
-EXCEPTION WHEN OTHERS THEN
-    GET STACKED DIAGNOSTICS 
-        _exstate = RETURNED_SQLSTATE,
-        _exmsg = MESSAGE_TEXT,
-        _exctx = PG_EXCEPTION_CONTEXT;
-    RAISE WARNING 'Error in pg_dbo_timestamp event trigger function. state: %, message: %, context: %', 
-        _exstate, _exmsg, _exctx;
-END;
-$$;
-
-ALTER TABLE dbots_event_data
-	ADD COLUMN cur_user name;
-
-ALTER TABLE ONLY dbots_event_data
-	ALTER COLUMN cur_user SET DEFAULT pg_catalog."current_user"();
-
-ALTER TABLE dbots_event_data
-	ADD COLUMN ses_user name;
-
-ALTER TABLE ONLY dbots_event_data
-	ALTER COLUMN ses_user SET DEFAULT pg_catalog."session_user"();
-
-ALTER TABLE dbots_event_data
-	ADD COLUMN ip_address text;
-
-ALTER TABLE ONLY dbots_event_data
-	ALTER COLUMN ip_address SET DEFAULT pg_catalog.inet_client_addr();
-
-ALTER TABLE ONLY dbots_event_data
-	ALTER COLUMN last_modified SET DEFAULT pg_catalog.now();
+DROP VIEW dbots_object_timestamps;
 
 CREATE VIEW dbots_object_timestamps AS
-	SELECT 
-            t.objid,
-            f.type,
-            f.schema,
-            f.name,
-            f.identity,
-            t.last_modified,
-            t.ses_user,
-            t.cur_user, 
-            t.ip_address
-    FROM dbots_event_data t,
-            LATERAL dbots_get_object_identity(t.classid, t.objid) f(type, schema, name, identity);
-
-ALTER EVENT TRIGGER dbots_tg_on_ddl_event ENABLE;
+	WITH acls AS (
+     SELECT union_acls.tableoid,
+        union_acls.oid,
+        union_acls.acl,
+        union_acls.colnames,
+        union_acls.colacls
+       FROM ( SELECT pg_proc.tableoid,
+                pg_proc.oid,
+                pg_proc.proacl,
+                NULL::text[] AS text,
+                NULL::text[] AS text
+               FROM pg_catalog.pg_proc
+            UNION ALL
+             SELECT pg_namespace.tableoid,
+                pg_namespace.oid,
+                pg_namespace.nspacl,
+                NULL::text[] AS text,
+                NULL::text[] AS text
+               FROM pg_catalog.pg_namespace
+            UNION ALL
+             SELECT pg_type.tableoid,
+                pg_type.oid,
+                pg_type.typacl,
+                NULL::text[] AS text,
+                NULL::text[] AS text
+               FROM pg_catalog.pg_type
+            UNION ALL
+             SELECT c.tableoid,
+                c.oid,
+                c.relacl,
+                attrs.attnames,
+                attrs.attacls
+               FROM (pg_catalog.pg_class c
+                 LEFT JOIN ( SELECT attr.attrelid,
+                        array_agg(attr.attname ORDER BY attr.attnum) AS attnames,
+                        array_agg((attr.attacl)::text ORDER BY attr.attnum) AS attacls
+                       FROM pg_catalog.pg_attribute attr
+                      WHERE ((attr.attnum > 0) AND (attr.attisdropped IS FALSE) AND (attr.attacl IS NOT NULL))
+                      GROUP BY attr.attrelid) attrs ON ((c.oid = attrs.attrelid)))) union_acls(tableoid, oid, acl, colnames, colacls)
+      WHERE ((union_acls.acl IS NOT NULL) OR (union_acls.colacls IS NOT NULL))
+ )
+ SELECT (a.acl)::text AS acl,
+    a.colnames,
+    a.colacls,
+    t.objid,
+    f.type,
+    f.schema,
+    f.name,
+    f.identity,
+    t.last_modified,
+    t.ses_user,
+    t.cur_user,
+    t.ip_address
+ FROM (dbots_event_data t
+ LEFT JOIN acls a ON (((a.tableoid = t.classid) AND (a.oid = t.objid)))),
+ LATERAL dbots_get_object_identity(t.classid, t.objid) f(type, schema, name, identity);
 

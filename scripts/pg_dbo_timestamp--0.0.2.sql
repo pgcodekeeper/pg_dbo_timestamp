@@ -1,3 +1,4 @@
+\echo Use "CREATE EXTENSION pg_dbo_timestamp" to load this file. \quit
 SET check_function_bodies = false;
 
 

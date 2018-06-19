@@ -20,7 +20,7 @@ if [[ ! "$WORK_DIR" || ! -d "$WORK_DIR" ]]; then
 fi
 
 # write warning on first line in update script
-echo '\echo Use "UPDATE EXTENSION pg_dbo_timestamp TO $NEW_VERSION" to load this file. \quit' > $UPDATE_SCRIPT_PATH
+echo '\echo Use "ALTER EXTENSION pg_dbo_timestamp UPDATE TO $NEW_VERSION" to load this file. \quit' > $UPDATE_SCRIPT_PATH
 
 # write warning on first line in full script
 echo '\echo Use "CREATE EXTENSION pg_dbo_timestamp" to load this file. \quit' > $FULL_SCRIPT_PATH

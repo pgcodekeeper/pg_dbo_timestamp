@@ -100,7 +100,7 @@ BEGIN
     FROM pg_catalog.pg_ts_parser p
     WHERE p.prsnamespace != pg_cat_schema
         AND p.prsnamespace != inf_schema
-        AND NOT t.oid = ANY (extension_deps);
+        AND NOT p.oid = ANY (extension_deps);
         
     --all fts templates
     INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address)
