@@ -52,8 +52,7 @@ GRANT USAGE ON SCHEMA schema_name TO user_name;
 Known issues
 ----------------
 
-The object timestamp tracking functionality is not fully reliable at the moment.  
-PostgreSQL does not provide full event trigger data for GRANT change events thus we don't track object privileges changes.
+PostgreSQL does not provide full event trigger data for GRANT change events thus we don't track object privileges changes. Instead, we select current ACLs for each object, returned by `dbots_object_timestamps` view.
 
 Updating extension
 ----------------
