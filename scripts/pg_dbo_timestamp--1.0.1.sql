@@ -239,15 +239,6 @@ BEGIN
     WHERE opf.opfnamespace != pg_cat_schema 
         AND opf.opfnamespace != inf_schema
         AND NOT opf.oid = ANY (extension_deps);
-        
-    --all procedures
-    INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address) 
-    SELECT 'pg_catalog.pg_proc'::pg_catalog.regclass::oid, proc.oid::bigint,
-    null, null, null
-    FROM pg_catalog.pg_proc proc
-    WHERE proc.pronamespace != pg_cat_schema 
-        AND proc.pronamespace != inf_schema
-        AND NOT proc.oid = ANY (extension_deps);
 
     --all publications
     INSERT INTO dbots_event_data (classid, objid, ses_user, cur_user, ip_address) 
