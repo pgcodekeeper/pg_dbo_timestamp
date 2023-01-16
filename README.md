@@ -77,3 +77,9 @@ All migration scripts are in the "extension" directory of PostgreSQL:
 ```sh
 ls `pg_config --sharedir`/extension/pg_dbo_timestamp*
 ```
+
+For  extension developers
+----------------
+How it works. The dbots_event_data table is used to save new added objects. This table stores name of database user and time when the last change done.
+
+To update version you need create new script 'pg_dbo_timestamp--x.y.z.sql ' where 'x.y.z' - new version series. Then you need to run generate.sh to create the migration script 'pg_dbo_timestamp--x.y.z--x.y.z+1.sql'
