@@ -78,8 +78,22 @@ All migration scripts are in the "extension" directory of PostgreSQL:
 ls `pg_config --sharedir`/extension/pg_dbo_timestamp*
 ```
 
-For  extension developers
+Extension structure:
 ----------------
-How it works. The dbots_event_data table is used to save new added objects. This table stores name of database user and time when the last change done.
 
-To update version you need create new script 'pg_dbo_timestamp--x.y.z.sql ' where 'x.y.z' - new version series. Then you need to run generate.sh to create the migration script 'pg_dbo_timestamp--x.y.z--x.y.z+1.sql'
+- `dbots_tg_on_ddl_event` - event trigger, calls `dbots_on_ddl_event` function for CREATE and ALTER statements.
+- `dbots_tg_on_drop_event` - event trigger, calls `dbots_on_drop_event` function for DROP statements.
+- `dbots_on_ddl_event` - function, writes to `dbots_event_data` the modification time with its author for created/modified objects.
+- `dbots_on_drop_event` - function, removes rows for deleted objects from `dbots_event_data`.
+- `dbots_get_object_identity` - function, converts object identifier to a human-readable format.
+- `dbots_event_data` - table, contains object identifiers, last modification time and its author.
+- `dbots_object_timestamps` - view, shows human-readable format of `dbots_event_data`.
+
+Contributing
+----------------
+
+To create new version:
+1. Modify files in [pgCodeKeeper](https://github.com/pgcodekeeper/pgcodekeeper) project in DATABASE folder.
+2. Run `.\generate.sh x.y.z` to generate scripts for new version, where 'x.y.z' is new version series.
+3. Change the default version in `pg_dbo_timestamp.control` file.
+4. Create a new tag.
